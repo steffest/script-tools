@@ -1,0 +1,102 @@
+<html>
+<head>
+    <style>
+        #log{
+            font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            padding: 20px 0;
+        }
+    </style>
+
+</head>
+<body>
+<div id="log"></div>
+<audio id="audio" controls="controls"></audio><br><br>
+<button id="start">Start</button>
+<button id="stop">Stop</button>
+
+<script>
+    var baseUrl = "http://download.stream.vrt.be/apps/services_sac/published/web/";
+    var year = "2016";
+    var month = "02";
+    var day = "08";
+    var hour = "19"; // seems to be the end hour ?
+    var stuBru = "41";
+    var showTitle = "Belpop_Bonanza";
+
+    var startId = 0; // dunno what this is exactly ... seems the be mostly 4 digits starting with a 0, maybe the end hour minute?
+    var maxId = 1000;
+    var endId; // seems to be mostly startId + 1 ? (but not always)
+    var endStep = 2;
+    var isActive = false;
+
+    var audio = document.getElementById("audio");
+    var log = document.getElementById("log");
+
+    audio.onerror = function(){
+        console.error("audio error");
+        if (isActive) nextUrl();
+    };
+
+    audio.onloadeddata = function(){
+        console.error("loadeddata");
+    };
+
+    audio.onloadedmetadata = function(){
+        log.innerHTML = "Found !";
+        console.error("loadedmetadata");
+    };
+
+    audio.oncanplay = function(){
+        console.error("canplay");
+        log.innerHTML = 'Found !<br><a href="'+audio.src+'">'+ audio.src+'</a>' ;
+        audio.play();
+    };
+
+    document.getElementById("start").onclick = function(){
+        isActive = true;
+        nextUrl();
+    };
+
+    document.getElementById("stop").onclick = function(){
+        isActive = false;
+    };
+
+
+    function nextUrl(){
+
+        if (startId > maxId){
+            startId = 0;
+            endStep++;
+
+            log.innerHTML = "waiting a few seconds for the next batch (just to be nice guy)";
+            setTimeout(nextUrl,4000);
+            return;
+        }
+
+        var id1 = padding4("" + startId);
+        var timeStamp1 = year.substr(2) + month + day + hour + id1;
+
+        endId = startId + endStep;
+        var id2 = padding4("" + endId);
+        var timeStamp2 = year + month + day + hour + id2;
+
+        var url = baseUrl + year + "/" + month + "/" + day + "/" + stuBru + "_" + showTitle + "_" + timeStamp1 + "_" + timeStamp2 + "_ondemand_128.mp3";
+
+        log.innerHTML = "Checking nr " + startId + " with offset " + endStep + "<br>" + url;
+
+        startId ++;
+        audio.src = url;
+
+    }
+
+    function padding4(s){
+        while (s.length<4){
+            s = "0" + s;
+        }
+        return s;
+    }
+</script>
+
+</body>
+</html>
